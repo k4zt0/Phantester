@@ -7,12 +7,15 @@ import json
 import os
 import secrets
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 
 from .errors import IntegrityError, UnsafeStateError
 
 CANARY_VERSION = 1
 CANARY_NAMES = ("local.canary", "master.canary")
+LOCK_NAME = "LOCKED"
+INCIDENT_NAME = "integrity-incident.json"
 
 
 def load_master_key() -> bytes:
@@ -61,6 +64,10 @@ class CanaryGuard:
 
     def verify(self) -> CanaryStatus:
         failures: list[str] = []
+        if (self.state_dir / LOCK_NAME).exists():
+            failures.append("persistent integrity lock is active")
+        elif (self.state_dir / INCIDENT_NAME).exists():
+            failures.append("persistent integrity incident is active")
         for name in CANARY_NAMES:
             path = self.state_dir / name
             try:
@@ -76,6 +83,8 @@ class CanaryGuard:
                     failures.append(f"{name}: authentication failed")
             except (OSError, KeyError, ValueError, TypeError, json.JSONDecodeError) as exc:
                 failures.append(f"{name}: {type(exc).__name__}")
+        if failures and not (self.state_dir / LOCK_NAME).exists():
+            failures.extend(self._record_incident(failures))
         return CanaryStatus(not failures, tuple(failures))
 
     def require_healthy(self) -> None:
@@ -95,3 +104,31 @@ class CanaryGuard:
         except Exception:
             path.unlink(missing_ok=True)
             raise
+
+    def _record_incident(self, failures: list[str]) -> list[str]:
+        persistence_failures: list[str] = []
+        incident = {
+            "version": CANARY_VERSION,
+            "detected_at": datetime.now(UTC).isoformat(),
+            "failures": failures,
+            "response": (
+                "operations locked; preserve evidence, isolate the host, verify backups, "
+                "investigate, and rotate the master key"
+            ),
+        }
+        try:
+            self._atomic_create(
+                self.state_dir / INCIDENT_NAME,
+                json.dumps(incident, sort_keys=True).encode(),
+            )
+        except FileExistsError:
+            pass
+        except OSError as exc:
+            persistence_failures.append(f"incident record unavailable: {type(exc).__name__}")
+        try:
+            self._atomic_create(self.state_dir / LOCK_NAME, b"manual recovery required\n")
+        except FileExistsError:
+            pass
+        except OSError as exc:
+            persistence_failures.append(f"integrity lock unavailable: {type(exc).__name__}")
+        return persistence_failures

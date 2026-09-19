@@ -20,7 +20,8 @@ overridden by model output.
   or altered canary makes writes and decryption fail closed.
 - **Response:** deny mutation, preserve evidence, isolate the affected scope,
   and require operator review before recovery.
-- **Transport:** certificate validation and hostname checks are mandatory.
+- **Transport:** certificate validation, hostname checks, and TLS 1.3 are
+  mandatory. Context creation requires healthy local and master canaries.
   Optional mTLS uses an operator-supplied client certificate.
 - **Agent boundary:** the fine-tuned model emits constrained assessments. It
   never receives encryption keys or directly modifies files.
@@ -43,6 +44,8 @@ phantester restore .\state .\sample.pdf.enc .\restored.pdf
 ```
 
 Store the master key in KMS or a secret manager in production. Never commit it.
+See [SECURITY.md](SECURITY.md) for the persistent-lock recovery procedure and
+the exact security boundary.
 
 ## Training
 
@@ -69,7 +72,7 @@ held-out corpus. Synthetic test accuracy alone is not real-world accuracy.
 
 ## Remote host
 
-The verified environment has 4x NVIDIA H100 80GB, about 1.5TiB RAM, and 2.3TB
+The verified environment has 1x NVIDIA H100 80GB, about 1.5TiB RAM, and 2TB
 free storage. `scripts/train_remote.sh` creates a Python 3.12 environment,
 installs dependencies, runs tests, benchmarks 20 steps, estimates remaining
 time, and then starts distributed training.
@@ -80,10 +83,10 @@ Expected elapsed time for 100,000 sequence-length-512 examples:
 |---|---:|
 | Setup and GPT-2 XL download | 10-40 minutes |
 | Dataset build and split | 2-10 minutes |
-| LoRA training, 3 epochs, 4x H100 | 20-90 minutes |
+| LoRA training, 3 epochs, 1x H100 | 1-4 hours |
 | Held-out generation evaluation | 10-40 minutes |
 | Upload | 5-20 minutes |
-| **Total** | **47 minutes-2 hours 40 minutes** |
+| **Total** | **1 hour 27 minutes-5 hours 10 minutes** |
 
 The remote benchmark prints a measured ETA. Full-parameter fine-tuning would
 take longer and requires a separate DeepSpeed/FSDP validation path.

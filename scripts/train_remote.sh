@@ -12,13 +12,13 @@ python scripts/split_dataset.py \
   --output-dir data/generated
 
 nvidia-smi
-torchrun --standalone --nproc_per_node=4 scripts/train.py \
+python scripts/train.py \
   --train-file data/generated/train.jsonl \
   --validation-file data/generated/validation.jsonl \
   --output-dir checkpoints/smoke \
   --max-steps 20
 
-torchrun --standalone --nproc_per_node=4 scripts/train.py \
+python scripts/train.py \
   --train-file data/generated/train.jsonl \
   --validation-file data/generated/validation.jsonl \
   --output-dir checkpoints/phantester-gpt2-xl-lora
