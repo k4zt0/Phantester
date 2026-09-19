@@ -22,5 +22,3 @@ def create_verified_context(
     if client_cert and client_key:
         context.load_cert_chain(certfile=str(client_cert), keyfile=str(client_key))
     return context
-
-\n

@@ -8,6 +8,9 @@ The model is advisory. Cryptographic operations, key access, integrity
 decisions, and containment are implemented by deterministic code and cannot be
 overridden by model output.
 
+**Repositories:** [GitHub](https://github.com/k4zt0/Phantester) |
+[Hugging Face](https://huggingface.co/KaztoRay/Phantester)
+
 ## Security architecture
 
 - **File signatures:** extension, known magic bytes, size, and SHA-256.
@@ -92,9 +95,7 @@ gh auth login
 hf auth login
 gh repo create k4zt0/Phantester --public --source . --remote origin --push
 python scripts/publish_model.py --model checkpoints/phantester-gpt2-xl-lora `
-  --repo-id YOUR_HF_ACCOUNT/Phantester
+  --repo-id KaztoRay/Phantester
 ```
 
 Publish only after the release gate passes and the model card is reviewed.
-
-\n

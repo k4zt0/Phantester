@@ -127,4 +127,3 @@ def restore_file(source: Path, target: Path, guard: CanaryGuard) -> None:
         temporary.close()
         temporary_path.unlink(missing_ok=True)
         raise
-\n

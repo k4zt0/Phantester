@@ -50,5 +50,3 @@ def restore(state_dir: Path, source: Path, target: Path) -> None:
 
 if __name__ == "__main__":
     app()
-
-\n

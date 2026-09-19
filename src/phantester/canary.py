@@ -95,5 +95,3 @@ class CanaryGuard:
         except Exception:
             path.unlink(missing_ok=True)
             raise
-
-\n

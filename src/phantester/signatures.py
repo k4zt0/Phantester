@@ -52,5 +52,3 @@ def inspect_file(path: Path) -> FileSignature:
         extension=extension,
         magic_matches_extension=magic_matches,
     )
-
-\n

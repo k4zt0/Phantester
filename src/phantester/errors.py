@@ -8,5 +8,3 @@ class IntegrityError(PhantesterError):
 
 class UnsafeStateError(PhantesterError):
     """Raised when an operation is denied because the system is unsafe."""
-
-\n

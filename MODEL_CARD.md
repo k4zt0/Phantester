@@ -29,5 +29,3 @@ window. Any output outside the documented schema is untrusted.
 Do not publish a checkpoint until it reaches at least 95% exact-match accuracy
 and 100% recall for canary failures on a reviewed held-out set, while all
 cryptographic fail-closed tests pass.
-
-\n

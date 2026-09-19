@@ -66,5 +66,3 @@ def test_tls_context_requires_verification() -> None:
 def test_tls_client_certificate_pair_is_required(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="supplied together"):
         create_verified_context(client_cert=tmp_path / "client.pem")
-
-\n

@@ -26,5 +26,3 @@ torchrun --standalone --nproc_per_node=4 scripts/train.py \
 python scripts/evaluate.py \
   --model checkpoints/phantester-gpt2-xl-lora \
   --data data/generated/test.jsonl
-
-\n

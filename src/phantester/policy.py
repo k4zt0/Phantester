@@ -32,5 +32,3 @@ def enforce_policy(assessment: Assessment, *, canaries_healthy: bool) -> Action:
     if assessment.risk is Risk.MEDIUM:
         return Action.QUARANTINE_FOR_REVIEW
     return Action.ALLOW_READ_ONLY
-
-\n
