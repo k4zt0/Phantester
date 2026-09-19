@@ -39,6 +39,10 @@ def main() -> None:
     parser.add_argument("--epochs", type=float, default=3.0)
     parser.add_argument("--max-length", type=int, default=512)
     parser.add_argument("--max-steps", type=int, default=-1)
+    parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument("--eval-batch-size", type=int, default=128)
+    parser.add_argument("--gradient-accumulation", type=int, default=1)
+    parser.add_argument("--gradient-checkpointing", action="store_true")
     args = parser.parse_args()
 
     tokenizer = AutoTokenizer.from_pretrained(args.model)
@@ -75,24 +79,24 @@ def main() -> None:
         batched=True,
         remove_columns=dataset["train"].column_names,
     )
-    checkpoint_steps = min(250, args.max_steps) if args.max_steps > 0 else 250
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         num_train_epochs=args.epochs,
         max_steps=args.max_steps,
-        per_device_train_batch_size=4,
-        per_device_eval_batch_size=4,
-        gradient_accumulation_steps=4,
+        per_device_train_batch_size=args.batch_size,
+        per_device_eval_batch_size=args.eval_batch_size,
+        gradient_accumulation_steps=args.gradient_accumulation,
         learning_rate=2e-4,
         warmup_steps=0.05,
         weight_decay=0.01,
         logging_steps=10,
-        eval_strategy="steps",
-        eval_steps=checkpoint_steps,
-        save_steps=checkpoint_steps,
+        eval_strategy="epoch",
+        save_strategy="epoch",
         save_total_limit=2,
         bf16=True,
-        gradient_checkpointing=True,
+        tf32=True,
+        gradient_checkpointing=args.gradient_checkpointing,
+        dataloader_num_workers=8,
         ddp_find_unused_parameters=False,
         report_to="none",
         load_best_model_at_end=True,

@@ -83,10 +83,10 @@ Expected elapsed time for 100,000 sequence-length-512 examples:
 |---|---:|
 | Setup and GPT-2 XL download | 10-40 minutes |
 | Dataset build and split | 2-10 minutes |
-| LoRA training, 3 epochs, 1x H100 | 1-4 hours |
+| LoRA training, 3 epochs, 1x H100 | 2-5 hours |
 | Held-out generation evaluation | 10-40 minutes |
 | Upload | 5-20 minutes |
-| **Total** | **1 hour 27 minutes-5 hours 10 minutes** |
+| **Total** | **2 hours 27 minutes-6 hours 10 minutes** |
 
 The remote benchmark prints a measured ETA. Full-parameter fine-tuning would
 take longer and requires a separate DeepSpeed/FSDP validation path.
