@@ -65,10 +65,12 @@ python scripts/evaluate.py \
   --data data/generated/test.jsonl
 ```
 
-Synthetic examples cover file formats, tampering, canary states, and write
-bursts. Before a production claim, add legally redistributable, human-reviewed
-examples from the target environment and evaluate on a separately sourced
-held-out corpus. Synthetic test accuracy alone is not real-world accuracy.
+Synthetic examples cover file formats, tampering, canary states, continuous
+file-size changes, and write bursts. Identical prompts remain in one split,
+while every split independently covers all defensive actions. Before a
+production claim, add legally redistributable, human-reviewed examples from
+the target environment and evaluate on a separately sourced held-out corpus.
+Synthetic test accuracy alone is not real-world accuracy.
 
 ## Remote host
 

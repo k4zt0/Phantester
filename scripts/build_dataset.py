@@ -24,8 +24,13 @@ def make_example(index: int, rng: random.Random) -> dict[str, str]:
     mismatch = rng.random() < 0.18
     other_magics = [magic for _, magic in FORMATS if magic != correct_magic]
     magic = rng.choice(other_magics) if mismatch else correct_magic
-    burst = rng.choice([0, 1, 2, 10, 100, 250])
-    delta = rng.choice([0, 0, 0, 128, 8192, -4096])
+    burst = (
+        rng.randint(100, 1000)
+        if rng.random() < 0.15
+        else rng.randint(0, 20)
+    )
+    delta = rng.randint(-1_000_000, 1_000_000)
+    size = rng.randint(1, 2**34)
 
     if canary != "healthy":
         risk, action, reason = "critical", "deny_and_isolate", "canary_failure"
@@ -37,7 +42,7 @@ def make_example(index: int, rng: random.Random) -> dict[str, str]:
         risk, action, reason = "low", "allow_read_only", "signature_matches"
 
     prompt = (
-        f"extension={extension} magic={magic} size_delta={delta} "
+        f"extension={extension} magic={magic} size_bytes={size} size_delta={delta} "
         f"canary={canary} burst_writes={burst}"
     )
     response = json.dumps(
@@ -45,7 +50,7 @@ def make_example(index: int, rng: random.Random) -> dict[str, str]:
         separators=(",", ":"),
         sort_keys=True,
     )
-    template = hashlib.sha256(f"{extension}:{canary}:{mismatch}:{burst >= 100}".encode()).hexdigest()
+    template = hashlib.sha256(prompt.encode()).hexdigest()
     return {
         "id": f"synthetic-{index:08d}",
         "template": template,
