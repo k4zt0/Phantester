@@ -104,3 +104,7 @@ python scripts/publish_model.py --model checkpoints/phantester-gpt2-xl-lora `
 ```
 
 Publish only after the release gate passes and the model card is reviewed.
+
+The evaluated release reached 100% exact JSON decision match and 100%
+canary-failure recall on the 10,000-example synthetic held-out split. See the
+model card for scope and limitations.
