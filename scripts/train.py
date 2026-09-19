@@ -84,7 +84,7 @@ def main() -> None:
         per_device_eval_batch_size=4,
         gradient_accumulation_steps=4,
         learning_rate=2e-4,
-        warmup_ratio=0.05,
+        warmup_steps=0.05,
         weight_decay=0.01,
         logging_steps=10,
         eval_strategy="steps",
