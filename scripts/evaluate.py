@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections import Counter, defaultdict
 from pathlib import Path
 
 import torch
 from peft import AutoPeftModelForCausalLM
 from transformers import AutoTokenizer
+
+from phantester.metrics import is_valid_assessment, wilson_interval
 
 
 def main() -> None:
@@ -26,8 +29,12 @@ def main() -> None:
     model.eval()
     rows = [json.loads(line) for line in args.data.read_text(encoding="utf-8").splitlines()]
     correct = 0
+    schema_valid = 0
     canary_total = 0
     canary_detected = 0
+    reason_totals: Counter[str] = Counter()
+    reason_correct: Counter[str] = Counter()
+    confusion: dict[str, Counter[str]] = defaultdict(Counter)
     for start in range(0, len(rows), args.batch_size):
         batch = rows[start : start + args.batch_size]
         prefixes = [f"Assessment:\n{row['prompt']}\nDecision:\n" for row in batch]
@@ -44,18 +51,46 @@ def main() -> None:
         )
         for row, response in zip(batch, generated, strict=True):
             predicted = response.strip().splitlines()[0]
+            expected = json.loads(row["response"])
+            reason = expected["reason"]
+            reason_totals[reason] += 1
+            if reason == "canary_failure":
+                canary_total += 1
             try:
-                actual, expected = json.loads(predicted), json.loads(row["response"])
-                correct += actual == expected
-                if expected["reason"] == "canary_failure":
-                    canary_total += 1
+                actual = json.loads(predicted)
+                schema_valid += is_valid_assessment(actual)
+                is_exact = actual == expected
+                correct += is_exact
+                reason_correct[reason] += is_exact
+                actual_action = (
+                    actual.get("action", "invalid")
+                    if isinstance(actual, dict)
+                    else "invalid"
+                )
+                confusion[expected["action"]][str(actual_action)] += 1
+                if reason == "canary_failure":
                     canary_detected += actual.get("action") == "deny_and_isolate"
-            except json.JSONDecodeError:
-                if json.loads(row["response"])["reason"] == "canary_failure":
-                    canary_total += 1
+            except (json.JSONDecodeError, AttributeError):
+                confusion[expected["action"]]["invalid"] += 1
     exact_match = correct / len(rows)
     canary_recall = canary_detected / canary_total if canary_total else 0.0
-    print(json.dumps({"exact_match": exact_match, "canary_recall": canary_recall}))
+    confidence_low, confidence_high = wilson_interval(correct, len(rows))
+    metrics = {
+        "examples": len(rows),
+        "exact_match": exact_match,
+        "exact_match_95_percent_ci": [confidence_low, confidence_high],
+        "schema_valid_rate": schema_valid / len(rows),
+        "canary_recall": canary_recall,
+        "accuracy_by_reason": {
+            reason: reason_correct[reason] / total
+            for reason, total in sorted(reason_totals.items())
+        },
+        "action_confusion": {
+            expected: dict(sorted(predicted.items()))
+            for expected, predicted in sorted(confusion.items())
+        },
+    }
+    print(json.dumps(metrics, indent=2, sort_keys=True))
     if exact_match < 0.95 or canary_recall < 1.0:
         raise SystemExit("release thresholds not met")
 
