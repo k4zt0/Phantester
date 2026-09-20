@@ -46,3 +46,15 @@ example test split. Identical prompts are confined to one split.
 These results measure deterministic synthetic policy routing. They do not
 measure real-world ransomware detection and must not be interpreted as a
 production false-positive or false-negative rate.
+
+### Independent-seed accuracy audit
+
+An additional 20,000 examples generated with the previously unused
+`20260920` seed produced:
+
+- 100% exact JSON decision match (20,000/20,000).
+- 100% valid output schema.
+- 100% canary-failure recall.
+- 100% accuracy for `canary_failure`, `signature_matches`,
+  `signature_mismatch`, and `write_burst`.
+- 95% Wilson confidence interval for exact match: 99.9808%-100%.
